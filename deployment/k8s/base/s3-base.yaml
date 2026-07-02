@@ -1,0 +1,51 @@
+apiVersion: s3.services.k8s.aws/v1alpha1
+kind: Bucket
+metadata:
+  name: <your-bucket-name>
+  namespace: <your-namespace>
+spec:
+  name: <your-bucket-name>
+  encryption:
+    rules:
+    - bucketKeyEnabled: true
+      applyServerSideEncryptionByDefault:
+        sseAlgorithm: AES256
+  versioning: 
+    status: Enabled
+  publicAccessBlock: 
+    blockPublicACLs: true
+    blockPublicPolicy: true
+    ignorePublicACLs: true
+    restrictPublicBuckets: true
+  lifecycle:
+    rules:
+    - id: <your-first-rule-id> # This is required to be unique
+      status: Enabled
+      prefix: "/" # abort multipart uploads at the bucket root level
+      abortIncompleteMultipartUpload:
+        daysAfterInitiation: 1
+    - id: <your-second-rule-id> # This is required to be unique
+      prefix: <your-prefix> # This is required to be unique
+      status: Enabled
+      transitions:
+        - days: 365 # This is required to be greater or equal to 365 days
+          storageClass: GLACIER
+      abortIncompleteMultipartUpload:
+        daysAfterInitiation: 1
+  tagging: 
+  # tagging is also enforced at an organizational level via SCPs for refernce please visit: https://github.com/sonatype/terraform-module-standard-tags
+    tagSet:
+    - key: segment
+      value: <your-segment>
+    - key: product
+      value: <your-product-name>
+    - key: sub-system
+      value: <your-sub-system>
+    - key: owner
+      value: <product-owner>
+    - key: environment
+      value: <your-environment>
+    - key: managed-by
+      value: ack
+    - key: expiration
+      value: <your-expiration>

@@ -1,0 +1,9 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- ../../base
+- network-policies.yaml
+namespace: <team_name>-staging-<product_name>
+patches:
+- path: deployment-patch.yaml
+- path: httproute-patch.yaml

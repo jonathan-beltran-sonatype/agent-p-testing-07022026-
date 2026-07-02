@@ -1,0 +1,9 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: git-repo
+spec:
+  interval: 30s
+  secretRef:
+    name: flux-ssh-keys
+  url: ssh://git@github.com/sonatype/<repo_name>.git

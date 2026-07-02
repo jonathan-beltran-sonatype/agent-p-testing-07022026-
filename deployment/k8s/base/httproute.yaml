@@ -1,0 +1,19 @@
+kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: <product_name>
+  labels:
+    app: <product_name>
+spec:
+  parentRefs:
+  - name: private-shared-gateway
+    namespace: projectcontour
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - kind: Service
+      name: <product_name>
+      port: 80

@@ -1,0 +1,65 @@
+name: Initial Setup
+
+on:
+  workflow_dispatch:
+    inputs:
+      product_name:
+        description: 'Enter your product name'
+        required: true
+      team_name:
+        description: 'Enter your team name'
+        required: true
+      image_path:
+        description: 'Enter your image path, ex. folder/name, not docker-all.repo.sonatype.com/folder/name'
+        required: true
+      image_tag:
+        description: 'Enter your image tag'
+        required: true
+      container_port:
+        description: 'Enter your container port'
+        required: true
+
+jobs:
+  setup-deployment:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 #https://github.com/actions/checkout/releases/tag/v3.6.0        uses: actions/checkout@v3
+      - name: Extract repo name
+        id: extract_repo_name
+        run: |
+          REPO_NAME=$(echo "${GITHUB_REPOSITORY}" | awk -F'/' '{print $2}')
+          echo "REPO_NAME=${REPO_NAME}" >> $GITHUB_ENV
+      - name: Run substitution script
+        run: |
+          find deployment -type f -exec sed -i "s|<product_name>|${{ github.event.inputs.product_name }}|g" {} \;
+          find deployment -type f -exec sed -i "s|<repo_name>|${{ env.REPO_NAME }}|g" {} \;
+          find deployment -type f -exec sed -i "s|<team_name>|${{ github.event.inputs.team_name }}|g" {} \;
+          find deployment -type f -exec sed -i "s|<image_path>|${{ github.event.inputs.image_path }}|g" {} \;
+          find deployment -type f -exec sed -i "s|<image_tag>|${{ github.event.inputs.image_tag }}|g" {} \;
+          find deployment -type f -exec sed -i "s|<container_port>|${{ github.event.inputs.container_port }}|g" {} \;
+      - name: Commit changes
+        run: |
+          git config --global user.name "Cloud Core"
+          git config --global user.email "sre@sonatype.com"
+          git add .
+          git commit -m "Add: substitute deployment values"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c #https://github.com/peter-evans/create-pull-request/releases/tag/v6.1.0
+        with:
+          branch: initial-setup
+          title: "PR with the substituted deployment values"
+          body: |
+            This PR contains these values for deployment:
+
+            - **Product Name:** ${{ github.event.inputs.product_name }}
+            - **Repository Name:** ${{ env.REPO_NAME }}
+            - **Team Name:** ${{ github.event.inputs.team_name }}
+            - **Image Path:** ${{ github.event.inputs.image_path }}
+            - **Image Tag:** ${{ github.event.inputs.image_tag }}
+            - **Container Port:** ${{ github.event.inputs.container_port }}
+
+            These values have been applied to the deployment files.
+

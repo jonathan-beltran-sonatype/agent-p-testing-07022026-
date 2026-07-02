@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <product_name>
+  labels:
+    tags.datadoghq.com/service: <product_name>
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: <product_name>
+  template:
+    metadata:
+      labels:
+        app: <product_name>
+        tags.datadoghq.com/service: <product_name>
+    spec:
+      automountServiceAccountToken: false
+      containers:
+      - name: <product_name>
+        image: docker-all.repo.sonatype.com/<image_path>:<image_tag>
+        imagePullPolicy: Always
+        ports:
+        - containerPort: <container_port>
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsUser: 10000
+          capabilities:
+            drop:
+              - ALL
+          seccompProfile:
+              type: RuntimeDefault          
+        volumeMounts:
+        - name: tmp-volume
+          mountPath: /tmp
+      volumes:
+      - name: tmp-volume
+        emptyDir: {}                 
+      imagePullSecrets:
+      - name: repo.sonatype.com

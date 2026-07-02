@@ -1,0 +1,7 @@
+kind: HTTPRoute
+apiVersion: gateway.networking.k8s.io/v1
+metadata:
+  name: <product_name>
+spec:
+  hostnames:
+  - "<product_name>.${base_domain}"
